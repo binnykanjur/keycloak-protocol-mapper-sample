@@ -1,0 +1,35 @@
+version: '3.4'
+
+name: keycloak-rest-protocol-mapper-sample
+services:
+  claimsprovider-keycloak:
+    image: quay.io/keycloak/keycloak:25.0.0
+    container_name: claimsprovider-keycloak
+    restart: always
+    ports:
+      - 5000:8080
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command: start-dev --import-realm
+    volumes:
+      - ./keycloak/data/import:/opt/keycloak/data/import
+      - ./keycloak/providers:/opt/keycloak/providers
+    networks:
+      - default
+      - internal-network
+
+  claimsprovider.api:
+    image: ${DOCKER_REGISTRY-}claimsproviderapi
+    container_name: claimsprovider.api
+    build:
+      context: ClaimsProvider.Api
+      dockerfile: Dockerfile
+    depends_on:
+      - claimsprovider-keycloak
+    networks:
+      - internal-network
+
+networks:
+  internal-network:
+    internal: true
